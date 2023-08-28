@@ -24,7 +24,8 @@
     "sort-by": "^1.2.0",
     "wagmi": "^1.3.10",
     "web-vitals": "^2.1.4",
-    "yup": "^1.2.0"
+    "yup": "^1.2.0",
+    "zustand": "^4.4.1"
   },
   "scripts": {
     "start": "react-scripts start",

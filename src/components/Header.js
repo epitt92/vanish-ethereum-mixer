@@ -1,8 +1,10 @@
 import logo from "../assets/images/logo.svg";
+import { useWalletAccount } from "../store";
 import { WalletIcon } from "./icons/WalletIcon";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export const Header = () => {
+  const setAccount = useWalletAccount((state) => state.setAccount);
   return (
     <header className="relative pl-[4.5rem] pr-[5.66rem] flex items-center justify-between pt-[2.06rem] max-md:pl-8 max-md:pr-8 max-sm:px-3">
       <a href="/">
@@ -24,6 +26,7 @@ export const Header = () => {
           authenticationStatus,
           mounted,
         }) => {
+          console.log("info", account);
           // Note: If your app doesn't use authentication, you
           // can remove all 'authenticationStatus' checks
           const ready = mounted && authenticationStatus !== "loading";
@@ -33,6 +36,7 @@ export const Header = () => {
             chain &&
             (!authenticationStatus || authenticationStatus === "authenticated");
 
+          setAccount(account ? account : {});
           return (
             <div
               {...(!ready && {

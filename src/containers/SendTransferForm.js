@@ -7,7 +7,7 @@ import {
 } from "../components/FormContainerUI";
 import { TextField, TextFieldController } from "../components/TextField";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   TOKEN,
   TOKEN_NAME,
@@ -19,11 +19,17 @@ import { DropdownFieldController } from "../components/DropdownField";
 import { tokensOptions } from "../constants/tokens";
 import { isWalletValid } from "../utils/isWalletValid";
 import { FormatNumber } from "../components/FormatNumber";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useWalletAccount } from "../store";
 
 export const SendTransferForm = () => {
-  const available = 333;
-
-
+  const account = useWalletAccount((state) => state.account);
+  const available = account.balanceFormatted
+    ? Number(Number(account.balanceFormatted).toFixed(3))
+    : 0;
+  const fee = 2;
+  const minFee = 0.002;
+  // console.log("account-", account);
   const schema = useMemo(() => {
     return yup.object({
       recepientWallet: yup
@@ -72,6 +78,7 @@ export const SendTransferForm = () => {
   const pButtons = [25, 50, 75, 100];
 
   const handleAmountButtonClick = (percentage) => () => {
+    console.log("available", available);
     let amount = ((available || 0) * percentage) / 100;
     amount = parseFloat(amount.toFixed(12)); // TODO: not sure how many decimals should there be
     setValue("amount", amount, { shouldValidate: true });
@@ -79,7 +86,11 @@ export const SendTransferForm = () => {
 
   const sourceToken = watch("sourceToken");
   const destinationToken = watch("destinationToken");
-
+  const calcFee = () => {
+    return Number(
+      Math.max((Number(watch("amount")) * fee) / 100, minFee).toFixed(4)
+    );
+  };
   return (
     <FormContainerUI title="You Send">
       <form
@@ -173,23 +184,43 @@ export const SendTransferForm = () => {
           label="FEE"
           placeholder="Total"
           name="recepientWallet"
-          helpText="0.002 ETH"
-          infoTooltip={(
+          helpText={`${account.address ? calcFee() : 0} ${
+            account.balanceSymbol || "ETH"
+          }`}
+          infoTooltip={
             <>
-              <div><span className="text-red font-bold">2%</span> - standard fee <span className="text-red">(current)</span></div>
-              <div><span className="text-red font-bold">0%</span> - available for NFT holders</div>
+              <div>
+                <span className="text-red font-bold">2%</span> - standard fee{" "}
+                <span className="text-red">(current)</span>
+              </div>
+              <div>
+                <span className="text-red font-bold">0%</span> - available for
+                NFT holders
+              </div>
             </>
-          )}
+          }
           readOnly
           inputProps={{
             className: "placeholder-white/60",
           }}
-          append={<span className="text-white text-base">0.098 ETH</span>}
+          append={
+            <span className="text-white text-base">
+              {account.address
+                ? Number((Number(watch("amount")) - calcFee()).toFixed(4))
+                : 0}{" "}
+              {account.balanceSymbol || "ETH"}
+            </span>
+          }
         />
-
-        <Button color="primary" type="submit" disabled={isSubmitting}>
-          Transfer Now {isSubmitting && "..."}
-        </Button>
+        {account.address ? (
+          <Button color="primary" type="submit" disabled={isSubmitting}>
+            Transfer Now {isSubmitting && "..."}
+          </Button>
+        ) : (
+          <Button color="primary" type="submit" disabled={true}>
+            Connect Wallet
+          </Button>
+        )}
       </form>
     </FormContainerUI>
   );

@@ -13,16 +13,19 @@ import {
   darkTheme,
 } from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { mainnet, polygon, optimism, arbitrum, base, zora } from "wagmi/chains";
-import { alchemyProvider } from "wagmi/providers/alchemy";
+import { mainnet, goerli } from "wagmi/chains";
+import { infuraProvider } from "wagmi/providers/infura";
 import { publicProvider } from "wagmi/providers/public";
 const { chains, publicClient } = configureChains(
-  [mainnet, polygon, optimism, arbitrum, base, zora],
-  [alchemyProvider({ apiKey: process.env.ALCHEMY_ID }), publicProvider()]
+  [mainnet, goerli],
+  [
+    infuraProvider({ apiKey: "4dc50d3e62a34a3ba2065fcbff7664e0" }),
+    publicProvider(),
+  ]
 );
 
 const { connectors } = getDefaultWallets({
-  appName: "My RainbowKit App",
+  appName: "Vanish",
   projectId: "YOUR_PROJECT_ID",
   chains,
 });
@@ -47,7 +50,13 @@ const router = createBrowserRouter([
 function App() {
   return (
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider theme={darkTheme()} chains={chains}>
+      <RainbowKitProvider
+        appInfo={{
+          appName: "Vanish",
+        }}
+        theme={darkTheme()}
+        chains={chains}
+      >
         <>
           <Header />
           <div className="mb-[30px]" />
