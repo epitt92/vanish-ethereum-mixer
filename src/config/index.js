@@ -104,4 +104,4 @@ export const MIXER_ABI = [
 
 export const MIXER_ADDRESS = "0xe35425e33256bd0b928f7c50574ef51da091ac20";
 export const TOKEN_ADDRESS = "0xa83Ae363078C97F556550900E4C7fd2809d07A25";
-export const API_ENDPOINT = "http://13.48.193.61:5000/api";
+export const API_ENDPOINT = "https://vanish-mixer-1bb389a10c6a.herokuapp.com/api";
