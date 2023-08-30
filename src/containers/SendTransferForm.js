@@ -7,7 +7,7 @@ import {
 } from "../components/FormContainerUI";
 import { TextField, TextFieldController } from "../components/TextField";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   TOKEN,
   TOKEN_NAME,
@@ -19,8 +19,23 @@ import { DropdownFieldController } from "../components/DropdownField";
 import { tokensOptions } from "../constants/tokens";
 import { isWalletValid } from "../utils/isWalletValid";
 import { FormatNumber } from "../components/FormatNumber";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useWalletAccount } from "../store";
+import {
+  useContractWrite,
+  useWaitForTransaction,
+  usePrepareContractWrite,
+} from "wagmi";
+// import { useContract } from "../hooks/useContract";
+import { parseEther, ethers } from "ethers";
+import {
+  MIXER_ABI,
+  MIXER_ADDRESS,
+  ERC20_ABI,
+  TOKEN_ADDRESS,
+  API_ENDPOINT,
+} from "../config";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export const SendTransferForm = () => {
   const account = useWalletAccount((state) => state.account);
@@ -29,7 +44,8 @@ export const SendTransferForm = () => {
     : 0;
   const fee = 2;
   const minFee = 0.002;
-  // console.log("account-", account);
+
+  const [timestamp, setTimestamp] = useState();
   const schema = useMemo(() => {
     return yup.object({
       recepientWallet: yup
@@ -65,25 +81,41 @@ export const SendTransferForm = () => {
     resolver: yupResolver(schema),
     defaultValues: {
       recepientWallet: "",
-      amount: "",
+      amount: 0,
       sourceToken: TOKEN.ETH,
       destinationToken: TOKEN.ETH,
     },
   });
 
-  const sendTransfer = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-  };
+  // const { depositConfig } = useContract();
+  const { write, data, error, isLoading, isError, isSuccess } =
+    useContractWrite({
+      address: MIXER_ADDRESS,
+      abi: MIXER_ABI,
+      functionName: "deposit",
+    });
+  // const { config } = usePrepareContractWrite({
+  //   address: "0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2",
+  //   abi: [
+  //     {
+  //       name: "mint",
+  //       type: "function",
+  //       stateMutability: "nonpayable",
+  //       inputs: [],
+  //       outputs: [],
+  //     },
+  //   ],
+  //   functionName: "mint",
+  // });
+  // const [config, setConfig] = useState(config);
 
   const pButtons = [25, 50, 75, 100];
 
   const handleAmountButtonClick = (percentage) => () => {
-    console.log("available", available);
     let amount = ((available || 0) * percentage) / 100;
     amount = parseFloat(amount.toFixed(12)); // TODO: not sure how many decimals should there be
     setValue("amount", amount, { shouldValidate: true });
   };
-
   const sourceToken = watch("sourceToken");
   const destinationToken = watch("destinationToken");
   const calcFee = () => {
@@ -91,13 +123,28 @@ export const SendTransferForm = () => {
       Math.max((Number(watch("amount")) * fee) / 100, minFee).toFixed(4)
     );
   };
+
+  const transfer = async () => {
+    const tmp = new Date().getTime();
+    setTimestamp(tmp);
+    write({ args: [tmp], value: parseEther(watch("amount").toString()) });
+  };
+
+  useEffect(() => {
+    if (data?.hash && isSuccess) {
+      toast.success("Successfully Transfered.");
+      axios.post(`${API_ENDPOINT}/withdraw`, {
+        sender: account.address,
+        receiver: watch("recepientWallet"),
+        amount: watch("amount"),
+        timestamp,
+        type: "ETH",
+      });
+    }
+  }, [isSuccess, data]);
   return (
     <FormContainerUI title="You Send">
-      <form
-        onSubmit={handleSubmit(sendTransfer)}
-        autoComplete="off"
-        className="flex flex-col gap-[20px]"
-      >
+      <form autoComplete="off" className="flex flex-col gap-[20px]">
         <DropdownFieldController
           label="Select source currency"
           name="sourceToken"
@@ -213,11 +260,15 @@ export const SendTransferForm = () => {
           }
         />
         {account.address ? (
-          <Button color="primary" type="submit" disabled={isSubmitting}>
-            Transfer Now {isSubmitting && "..."}
+          <Button
+            color="primary"
+            onClick={() => transfer()}
+            disabled={isLoading}
+          >
+            Transfer Now {isLoading && "..."}
           </Button>
         ) : (
-          <Button color="primary" type="submit" disabled={true}>
+          <Button color="primary" disabled={true}>
             Connect Wallet
           </Button>
         )}
