@@ -58,5 +58,10 @@
   "devDependencies": {
     "tailwindcss": "^3.3.2"
   },
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false
+  },
   "proxy": "http://54.149.187.198:5000"
 }
