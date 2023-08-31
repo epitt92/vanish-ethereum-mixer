@@ -57,13 +57,10 @@
   },
   "devDependencies": {
     "tailwindcss": "^3.3.2"
-<<<<<<< HEAD
-=======
   },
   "browser": {
     "fs": false,
     "path": false,
     "os": false
->>>>>>> a06debe07ca2e377da2f20d6186083306eb50574
   }
 }
