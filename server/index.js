@@ -2,10 +2,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const app = express();
-const http = require("http").Server(app);
+// const http = require("http").Server(app);
 app.use(express.static("public"));
-const { WebSocket } = require("ws");
-const Web3 = require("web3");
+const path = require("path");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -21,6 +20,9 @@ app.use(
 router.use(require("./routes"));
 
 app.use("/api/", router); // path must route to lambda
-
+app.use(express.static(path.join(__dirname, "../build")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../build"));
+});
 app.use(express.json());
-http.listen(port, () => {});
+app.listen(port, () => {});

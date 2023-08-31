@@ -33,32 +33,33 @@ routes.post("/withdraw", async (req, res) => {
   let hashValue = await contract.methods
     .computeHash(checksummSender, Number(timestamp), type, value)
     .call();
-  console.log(hashValue);
-
-  if (type === "ETH") {
-    console.log("eth", value);
-    transaction = contract.methods.mix(hashValue, checksummReceiver, value);
-  } else {
-    console.log("erc20", value);
-    transaction = contract.methods.mixERC20(
-      hashValue,
-      checksummReceiver,
-      value
-    );
-  }
-  const gasPrice = await web3.eth.getGasPrice();
-  const nonce = await web3.eth.getTransactionCount(walletAddr);
-  const gasEstimate = await transaction.estimateGas({ from: walletAddr });
-  const rawTx = {
-    to: contractAddress,
-    gas: gasEstimate,
-    gasPrice: gasPrice,
-    data: transaction.encodeABI(),
-    nonce,
-  };
-  const tx = await web3.eth.accounts.signTransaction(rawTx, privateKey);
+  let fee = await contract.methods.computeFee(sender, value).call();
+  console.log(hashValue, fee);
+  let rVal = BigInt(value) - fee;
   try {
-    web3.eth.sendSignedTransaction(tx.rawTransaction);
+    if (type === "ETH") {
+      console.log("eth", rVal);
+      transaction = contract.methods.mix(hashValue, checksummReceiver, rVal);
+    } else {
+      console.log("erc20", rVal);
+      transaction = contract.methods.mixERC20(
+        hashValue,
+        checksummReceiver,
+        rVal
+      );
+    }
+    const gasPrice = await web3.eth.getGasPrice();
+    const nonce = await web3.eth.getTransactionCount(walletAddr);
+    const gasEstimate = await transaction.estimateGas({ from: walletAddr });
+    const rawTx = {
+      to: contractAddress,
+      gas: gasEstimate,
+      gasPrice: gasPrice,
+      data: transaction.encodeABI(),
+      nonce,
+    };
+    const tx = await web3.eth.accounts.signTransaction(rawTx, privateKey);
+    await web3.eth.sendSignedTransaction(tx.rawTransaction);
   } catch (err) {
     console.log(err);
     return res.json({ success: false });

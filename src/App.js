@@ -16,6 +16,10 @@ import { configureChains, createConfig, WagmiConfig } from "wagmi";
 import { mainnet, goerli } from "wagmi/chains";
 import { infuraProvider } from "wagmi/providers/infura";
 import { publicProvider } from "wagmi/providers/public";
+import { ToastContainer } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
+
 const { chains, publicClient } = configureChains(
   [mainnet, goerli],
   [
@@ -67,6 +71,17 @@ function App() {
           </div>
           <div className="mb-[48px]" />
           <Footer />
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            pauseOnHover
+            theme="dark"
+          />
         </>
       </RainbowKitProvider>
     </WagmiConfig>

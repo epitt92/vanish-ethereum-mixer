@@ -23,7 +23,7 @@ import { useWalletAccount } from "../store";
 import {
   useContractWrite,
   useWaitForTransaction,
-  usePrepareContractWrite,
+  useContractRead,
 } from "wagmi";
 // import { useContract } from "../hooks/useContract";
 import { parseEther, ethers } from "ethers";
@@ -92,22 +92,14 @@ export const SendTransferForm = () => {
     useContractWrite({
       address: MIXER_ADDRESS,
       abi: MIXER_ABI,
-      functionName: "deposit",
     });
-  // const { config } = usePrepareContractWrite({
-  //   address: "0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2",
-  //   abi: [
-  //     {
-  //       name: "mint",
-  //       type: "function",
-  //       stateMutability: "nonpayable",
-  //       inputs: [],
-  //       outputs: [],
-  //     },
-  //   ],
-  //   functionName: "mint",
-  // });
-  // const [config, setConfig] = useState(config);
+
+  const { data: feeData, refetch } = useContractRead({
+    address: MIXER_ADDRESS,
+    abi: MIXER_ABI,
+    functionName: "computeFee",
+    args: [account.address, parseEther(watch("amount").toString())],
+  });
 
   const pButtons = [25, 50, 75, 100];
 
@@ -119,29 +111,55 @@ export const SendTransferForm = () => {
   const sourceToken = watch("sourceToken");
   const destinationToken = watch("destinationToken");
   const calcFee = () => {
-    return Number(
-      Math.max((Number(watch("amount")) * fee) / 100, minFee).toFixed(4)
-    );
+    console.log("feedata", feeData);
+    return Number(ethers.formatEther(feeData || 0));
   };
 
   const transfer = async () => {
+    const rVal = Number(watch("amount")) - calcFee();
+    if (rVal < minFee || !ethers.isAddress(watch("recepientWallet"))) {
+      return toast.error(
+        "Please input the valid amount and Recipient Wallet Address."
+      );
+    }
     const tmp = new Date().getTime();
     setTimestamp(tmp);
-    write({ args: [tmp], value: parseEther(watch("amount").toString()) });
+    write({
+      functionName: "deposit",
+      args: [tmp],
+      value: parseEther(watch("amount").toString()),
+    });
   };
 
+  const {
+    data: txData,
+    isLoading: txIsLoading,
+    isSuccess: txIsSuccess,
+    isError: txIsError,
+  } = useWaitForTransaction({
+    hash: data?.hash,
+  });
   useEffect(() => {
-    if (data?.hash && isSuccess) {
-      toast.success("Successfully Transfered.");
-      axios.post(`${API_ENDPOINT}/withdraw`, {
-        sender: account.address,
-        receiver: watch("recepientWallet"),
-        amount: watch("amount"),
-        timestamp,
-        type: "ETH",
-      });
+    if (txData && txIsSuccess && data?.hash) {
+      axios
+        .post(`${API_ENDPOINT}/withdraw`, {
+          sender: account.address,
+          receiver: watch("recepientWallet"),
+          amount: watch("amount"),
+          timestamp,
+          type: "ETH",
+        })
+        .then((res) => {
+          toast.success("Congratulation! Successfully Transfered.");
+        })
+        .catch((err) => {
+          toast.error("Sorry, transfer was failed. Please try again.");
+        });
     }
-  }, [isSuccess, data]);
+    if (txIsError && !txIsSuccess && !txIsLoading) {
+      toast.error("Sorry, transfer was failed. Please try again.");
+    }
+  }, [txIsSuccess, txIsLoading, txData, txIsError]);
   return (
     <FormContainerUI title="You Send">
       <form autoComplete="off" className="flex flex-col gap-[20px]">
@@ -263,9 +281,9 @@ export const SendTransferForm = () => {
           <Button
             color="primary"
             onClick={() => transfer()}
-            disabled={isLoading}
+            disabled={isLoading || txIsLoading}
           >
-            Transfer Now {isLoading && "..."}
+            Transfer Now {(isLoading || txIsLoading) && "..."}
           </Button>
         ) : (
           <Button color="primary" disabled={true}>

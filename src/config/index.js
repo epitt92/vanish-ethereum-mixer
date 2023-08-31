@@ -100,8 +100,18 @@ export const MIXER_ABI = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [
+      { internalType: "address", name: "sender", type: "address" },
+      { internalType: "uint256", name: "value", type: "uint256" },
+    ],
+    name: "computeFee",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
 ];
 
-export const MIXER_ADDRESS = "0xe35425e33256bd0b928f7c50574ef51da091ac20";
+export const MIXER_ADDRESS = "0x9602F7e63BD5f84B4593D65Bb9DFf0cC4A5f2336";
 export const TOKEN_ADDRESS = "0xa83Ae363078C97F556550900E4C7fd2809d07A25";
 export const API_ENDPOINT = "http://localhost:5000/api";
