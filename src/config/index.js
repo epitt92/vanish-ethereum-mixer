@@ -121,5 +121,5 @@ export const MIXER_ADDRESS = {
 export const TOKEN_ADDRESS = "0xa83Ae363078C97F556550900E4C7fd2809d07A25";
 
 export const BSC_TOKEN_ADDRESS = "0x221c5B1a293aAc1187ED3a7D7d2d9aD7fE1F3FB0";
-export const API_ENDPOINT = "http://localhost:5000/api";
-// "https://vanish-mixer-1bb389a10c6a.herokuapp.com/api";
+export const API_ENDPOINT =
+  "https://vanish-mixer-1bb389a10c6a.herokuapp.com/api";
