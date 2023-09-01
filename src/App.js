@@ -13,7 +13,7 @@ import {
   darkTheme,
 } from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { mainnet, goerli } from "wagmi/chains";
+import { mainnet, goerli, bsc, bscTestnet } from "wagmi/chains";
 import { infuraProvider } from "wagmi/providers/infura";
 import { publicProvider } from "wagmi/providers/public";
 import { ToastContainer } from "react-toastify";
@@ -21,7 +21,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const { chains, publicClient } = configureChains(
-  [mainnet, goerli],
+  [mainnet, goerli, bsc, bscTestnet],
   [
     infuraProvider({ apiKey: "4dc50d3e62a34a3ba2065fcbff7664e0" }),
     publicProvider(),

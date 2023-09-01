@@ -16,7 +16,7 @@ import {
 } from "../constants";
 import { Button } from "../components/Button";
 import { DropdownFieldController } from "../components/DropdownField";
-import { tokensOptions } from "../constants/tokens";
+import { tokensOptions as ChainOptions } from "../constants/tokens";
 import { isWalletValid } from "../utils/isWalletValid";
 import { FormatNumber } from "../components/FormatNumber";
 import { useWalletAccount } from "../store";
@@ -24,6 +24,7 @@ import {
   useContractWrite,
   useWaitForTransaction,
   useContractRead,
+  useChainId,
 } from "wagmi";
 // import { useContract } from "../hooks/useContract";
 import { parseEther, ethers } from "ethers";
@@ -39,6 +40,9 @@ import { toast } from "react-toastify";
 
 export const SendTransferForm = () => {
   const account = useWalletAccount((state) => state.account);
+  const chainData = useChainId() ?? 1;
+  const tokensOptions = ChainOptions[chainData];
+  console.log("tokenoptions", tokensOptions);
   const available = account.balanceFormatted
     ? Number(Number(account.balanceFormatted).toFixed(3))
     : 0;
@@ -82,23 +86,23 @@ export const SendTransferForm = () => {
     defaultValues: {
       recepientWallet: "",
       amount: 0,
-      sourceToken: TOKEN.ETH,
-      destinationToken: TOKEN.ETH,
+      sourceToken: tokensOptions[0].value,
+      destinationToken: tokensOptions[0].value,
     },
   });
 
   // const { depositConfig } = useContract();
   const { write, data, error, isLoading, isError, isSuccess } =
     useContractWrite({
-      address: MIXER_ADDRESS,
+      address: MIXER_ADDRESS[chainData],
       abi: MIXER_ABI,
     });
 
   const { data: feeData, refetch } = useContractRead({
-    address: MIXER_ADDRESS,
+    address: MIXER_ADDRESS[chainData],
     abi: MIXER_ABI,
     functionName: "computeFee",
-    args: [account.address, parseEther(watch("amount").toString())],
+    args: [account.address, parseEther((watch("amount") || 0).toString())],
   });
 
   const pButtons = [25, 50, 75, 100];
@@ -148,6 +152,7 @@ export const SendTransferForm = () => {
           amount: watch("amount"),
           timestamp,
           type: "ETH",
+          chainId: chainData,
         })
         .then((res) => {
           toast.success("Congratulation! Successfully Transfered.");
@@ -173,6 +178,7 @@ export const SendTransferForm = () => {
           }
           control={control}
           options={tokensOptions}
+          defaultValue={tokensOptions[0].value}
           dropdownTitle="Select a Token"
         />
 
@@ -230,12 +236,13 @@ export const SendTransferForm = () => {
           name="destinationToken"
           append={
             <span className="text-white/60">
-              {TOKEN_NAME[destinationToken]} ({destinationToken})
+              {TOKEN_NAME[sourceToken]} ({sourceToken})
             </span>
           }
           control={control}
           options={tokensOptions}
-          dropdownTitle="Select a Token"
+          defaultValue={tokensOptions[0].value}
+          // dropdownTitle="Select a Token"
         />
 
         <TextFieldController

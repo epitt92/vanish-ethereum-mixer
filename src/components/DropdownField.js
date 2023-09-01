@@ -32,9 +32,9 @@ export const DropdownField = forwardRef(
     useClickAway(dropdownRef, (event) => {
       if (!open) return;
       if (handlerRef.current === event.target) return;
-      if (handlerRef.current.contains(event.target)) return
+      if (handlerRef.current.contains(event.target)) return;
 
-      setOpen(false)
+      setOpen(false);
     });
 
     const selectedOption = options.find((o) => o.value === value);
@@ -60,7 +60,7 @@ export const DropdownField = forwardRef(
         </div>
 
         <div className="relative h-[50px] border-[1px] border-white/10 rounded-[38px] w-full px-5 bg-input-bg/70 placeholder-white/40 outline-none cursor-default focus:border-red23 focus:read-only:border-white/10">
-          <button 
+          <button
             ref={handlerRef}
             type="button"
             className={`flex items-center justify-between gap-3  px-5 absolute left-0 bottom-0 top-0 bg-gray-100 rounded-[38px] hover:bg-gray-100-hover min-w-[158px] ${
@@ -78,7 +78,9 @@ export const DropdownField = forwardRef(
 
           {append && (
             <div className="absolute left-[170px] right-6 top-0 bottom-0 flex items-center justify-end">
-              <span className="inline-block text-ellipsis overflow-hidden whitespace-nowrap">{append}</span>
+              <span className="inline-block text-ellipsis overflow-hidden whitespace-nowrap">
+                {append}
+              </span>
             </div>
           )}
 
@@ -98,7 +100,10 @@ export const DropdownField = forwardRef(
 
 const DropdownList = forwardRef(({ options, title, onSelect }, ref) => {
   return (
-    <div ref={ref} className="absolute left-0 right-0 top-[110%] bg-gray-100 rounded-2xl  pt-2 z-10">
+    <div
+      ref={ref}
+      className="absolute left-0 right-0 top-[110%] bg-gray-100 rounded-2xl  pt-2 z-10"
+    >
       <header className="px-5 pt-2 pb-4 text-sm font-medium">
         {title && <h4>{title}</h4>}
       </header>
@@ -127,6 +132,7 @@ export const DropdownFieldController = ({
   name,
   label,
   className,
+  defaultValue,
   ...rest
 }) => {
   const {
@@ -135,15 +141,15 @@ export const DropdownFieldController = ({
   } = useController({
     name,
     control,
+    defaultValue,
   });
-
   const hasError = Boolean(error?.message);
 
   return (
     <DropdownField
       hasError={hasError}
       label={label}
-      value={value}
+      value={defaultValue ?? value}
       name={name}
       onChange={onChange}
       onBlur={onBlur}
