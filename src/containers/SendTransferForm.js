@@ -82,7 +82,7 @@ export const SendTransferForm = () => {
     watch,
     control,
   } = useForm({
-    resolver: yupResolver(schema),
+    // resolver: yupResolver(schema),
     defaultValues: {
       recepientWallet: "",
       amount: 0,
@@ -155,7 +155,7 @@ export const SendTransferForm = () => {
           chainId: chainData,
         })
         .then((res) => {
-          toast.success("Congratulation! Successfully Transfered.");
+          toast.success("Congratulations! Successfully Transfered.");
         })
         .catch((err) => {
           toast.error("Sorry, transfer was failed. Please try again.");
